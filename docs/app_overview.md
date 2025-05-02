@@ -88,7 +88,7 @@ erDiagram
         int id PK
         string title
         string description NULL
-        TaskStatus status
+        string status "Refers to TaskStatus enum"
         datetime created_at
         datetime updated_at NULL
         string assignee NULL
@@ -99,11 +99,11 @@ erDiagram
         int id PK
         string title
         string description NULL
-        TaskStatus status
+        string status "Refers to TaskStatus enum"
         datetime created_at
         datetime updated_at NULL
         string assignee NULL
-        int epic_id FK
+        int epic_id FK NULL
         int project_id FK
     }
 
@@ -118,17 +118,18 @@ erDiagram
     STATUS_HISTORY {
         int id PK
         int task_id FK
-        TaskStatus old_status
-        TaskStatus new_status
+        string old_status "Refers to TaskStatus enum"
+        string new_status "Refers to TaskStatus enum"
         datetime changed_at
     }
 
-    TaskStatus {
-        To-Do
-        In-Progress
-        Done
-        Canceled
-    }
+    %% TaskStatus enum defined in application code:
+    %% enum TaskStatus {
+    %%     To-Do
+    %%     In-Progress
+    %%     Done
+    %%     Canceled
+    %% }
 ```
 
 **Tables:**
