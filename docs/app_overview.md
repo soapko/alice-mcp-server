@@ -87,29 +87,29 @@ erDiagram
     EPIC {
         int id PK
         string title
-        string description NULL
+        string description
         string status
         datetime created_at
-        datetime updated_at NULL
-        string assignee NULL
-        int project_id FK
+        datetime updated_at
+        string assignee
+        int project_id
     }
 
     TASK {
         int id PK
         string title
-        string description NULL
+        string description
         string status
         datetime created_at
-        datetime updated_at NULL
-        string assignee NULL
-        int epic_id FK NULL
-        int project_id FK
+        datetime updated_at
+        string assignee
+        int epic_id
+        int project_id
     }
 
     MESSAGE {
         int id PK
-        int task_id FK
+        int task_id
         string author
         string message
         datetime timestamp
@@ -117,14 +117,15 @@ erDiagram
 
     STATUS_HISTORY {
         int id PK
-        int task_id FK
+        int task_id
         string old_status
         string new_status
         datetime changed_at
     }
 
-    %% Note: 'status' fields above refer to the TaskStatus enum
+    %% Note: 'status', 'old_status', and 'new_status' fields refer to the TaskStatus enum
     %% defined in application code (To-Do, In-Progress, Done, Canceled).
+    %% Note: Nullability markers removed for rendering compatibility.
 ```
 
 **Tables:**
