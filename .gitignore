@@ -123,6 +123,9 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 
+# Editor specific files
+.cursorrules
+
 # Alice specific
 alice.db
 *.log
