@@ -88,7 +88,7 @@ erDiagram
         int id PK
         string title
         string description NULL
-        TaskStatus status "default 'To-Do'"
+        TaskStatus status
         datetime created_at
         datetime updated_at NULL
         string assignee NULL
@@ -99,7 +99,7 @@ erDiagram
         int id PK
         string title
         string description NULL
-        TaskStatus status "default 'To-Do'"
+        TaskStatus status
         datetime created_at
         datetime updated_at NULL
         string assignee NULL
@@ -124,12 +124,11 @@ erDiagram
     }
 
     enum TaskStatus {
-        "To-Do"
-        "In Progress"
-        "Done"
-        "Canceled"
+        To-Do
+        In-Progress
+        Done
+        Canceled
     }
-
 ```
 
 **Tables:**
