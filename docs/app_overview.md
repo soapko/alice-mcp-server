@@ -103,7 +103,7 @@ erDiagram
         datetime created_at
         datetime updated_at NULL
         string assignee NULL
-        int epic_id FK NULL
+        int epic_id FK
         int project_id FK
     }
 
@@ -123,7 +123,7 @@ erDiagram
         datetime changed_at
     }
 
-    enum TaskStatus {
+    TaskStatus {
         To-Do
         In-Progress
         Done
