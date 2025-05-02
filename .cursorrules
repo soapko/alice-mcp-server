@@ -1,0 +1,86 @@
+# Alice MCP Integration Rules
+# These rules guide Cursor AI in using Alice for task management during development
+
+# When to Use Alice
+- When starting a new development task or feature
+- When debugging complex issues that require tracking progress
+- When collaborating on code changes that need context tracking
+- When implementing architectural decisions that need documentation
+- When refactoring code that requires careful tracking of changes
+
+# How to Use Alice
+1. Task Creation:
+   - Create a new task for each major development activity
+   - Use descriptive titles that clearly indicate the purpose
+   - Include relevant context in the description
+   - Set appropriate status (To-Do, In Progress, Done, Canceled)
+
+2. Message Context:
+   - Add messages for important decisions and their rationale
+   - Document architectural choices and their implications
+   - Track debugging progress and solutions
+   - Note dependencies and potential impacts
+   - Include code snippets or references when relevant
+
+3. Status Updates:
+   - Update task status as development progresses
+   - Use status changes to track major milestones
+   - Mark tasks as Done when complete
+   - Cancel tasks if they become obsolete
+
+4. Task Organization:
+   - Group related tasks by feature or component
+   - Use assignee field to track responsibility
+   - Filter tasks by status to focus on current work
+   - Use date filters to track progress over time
+
+# Best Practices
+- Keep task descriptions clear and concise
+- Update status regularly to maintain accurate progress tracking
+- Add messages for important decisions and their rationale
+- Use task filtering to focus on relevant work
+- Document dependencies between tasks
+- Include code references when relevant
+
+# Example Usage
+1. Starting a New Feature:
+   ```
+   Create task:
+   Title: "Implement user authentication system"
+   Description: "Add JWT-based authentication with refresh tokens"
+   Status: "To-Do"
+   ```
+
+2. During Development:
+   ```
+   Add message: "Decided to use JWT with refresh tokens for better security"
+   Update status: "In Progress"
+   Add message: "Implemented token generation and validation"
+   ```
+
+3. Completing Work:
+   ```
+   Add message: "All tests passing, documentation updated"
+   Update status: "Done"
+   ```
+
+# Integration Points
+- Use Alice for tracking development progress
+- Document architectural decisions
+- Track debugging sessions
+- Manage feature development
+- Coordinate refactoring efforts
+- Track technical debt
+
+# Task Status Guidelines
+- To-Do: Initial planning and setup
+- In Progress: Active development
+- Done: Completed and tested
+- Canceled: Obsolete or replaced
+
+# Message Guidelines
+- Document decisions and rationale
+- Track progress and milestones
+- Note dependencies and impacts
+- Include code references when relevant
+- Document debugging steps and solutions 
