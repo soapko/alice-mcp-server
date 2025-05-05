@@ -2,6 +2,26 @@
 
 This guide provides recommended instructions for incorporating the Alice MCP task tracking system into your custom instructions for Large Language Models (LLMs) or AI coding assistants.
 
+## Server Setup
+
+The Alice MCP system consists of two components:
+
+1. **FastAPI Backend**: Provides the database and API endpoints for task management.
+2. **Node.js MCP Server**: Interfaces between the LLM and the FastAPI backend.
+
+Both components now start automatically when the MCP system is initialized, so no manual server startup is required. The wrapper script `scripts/start-alice-servers.sh` handles:
+
+- Activating the Python virtual environment
+- Installing required dependencies
+- Starting the FastAPI server
+- Verifying server availability
+- Starting the MCP server with proper environment configuration
+
+If you encounter any issues with the automatic startup, you can run the script manually with debug mode:
+```bash
+/bin/zsh /path/to/alice-mcp/scripts/start-alice-servers.sh --debug
+```
+
 ## Core Principles
 
 - **Task-Driven Workflow:** All significant coding or documentation work should be tracked as an Alice task.
