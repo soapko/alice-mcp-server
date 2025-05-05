@@ -40,13 +40,29 @@ See the [Documentation](#documentation) section for links to detailed guides.
 
 ## Running the Server
 
-To start the development server with hot reloading:
+### Automatic Startup (MCP Integration)
 
-```bash
-uvicorn app.main:app --reload
-```
+When used with an MCP-compatible environment, Alice now starts automatically - both the FastAPI backend and the MCP server components launch together. This is handled by the `scripts/start-alice-servers.sh` wrapper script, which:
 
-The server will typically be available at `http://127.0.0.1:8000`.
+- Activates the Python environment
+- Installs dependencies
+- Starts the FastAPI server
+- Starts the MCP server
+
+### Manual Startup (Development)
+
+If you need to run the server manually (for development or testing), you can:
+
+1. Start the FastAPI server:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+   The server will be available at `http://127.0.0.1:8000`
+
+2. For debugging issues, you can run the wrapper script directly:
+   ```bash
+   /bin/zsh scripts/start-alice-servers.sh --debug
+   ```
 
 ## Getting Started
 
