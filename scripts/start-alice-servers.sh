@@ -78,18 +78,31 @@ trap cleanup SIGINT SIGTERM
 export ALICE_API_URL="http://127.0.0.1:8000"
 echo "Set environment variable ALICE_API_URL=$ALICE_API_URL"
 
-# Start the Node MCP server in the foreground
-# This keeps the script running until the MCP server stops
-# Use the NODE_MCP_PATH env variable if set, otherwise look in the repository
-# Attempt to find the MCP server in standard locations
-if [ -f "$PROJECT_ROOT/../alice-mcp-server/build/index.js" ]; then
-    DEFAULT_MCP_PATH="$PROJECT_ROOT/../alice-mcp-server/build/index.js"
+# Try to find the MCP server in common locations
+if [ -n "$ALICE_MCP_SERVER_PATH" ]; then
+    # Use environment variable if set
+    MCP_SERVER_PATH="$ALICE_MCP_SERVER_PATH"
+    echo "Using MCP server path from environment: $MCP_SERVER_PATH"
 elif [ -f "$HOME/Documents/Cline/MCP/alice-mcp-server/build/index.js" ]; then
-    DEFAULT_MCP_PATH="$HOME/Documents/Cline/MCP/alice-mcp-server/build/index.js"
+    # Default Cline MCP location
+    MCP_SERVER_PATH="$HOME/Documents/Cline/MCP/alice-mcp-server/build/index.js"
+    echo "Found MCP server at default Cline location"
+elif [ -f "$HOME/Documents/Cline/MCP/alice-mcp-server/dist/index.js" ]; then
+    # Alternative build directory
+    MCP_SERVER_PATH="$HOME/Documents/Cline/MCP/alice-mcp-server/dist/index.js"
+    echo "Found MCP server at alternative build location"
+elif [ -f "$PROJECT_ROOT/../Cline/MCP/alice-mcp-server/build/index.js" ]; then
+    # Try relative to project root
+    MCP_SERVER_PATH="$PROJECT_ROOT/../Cline/MCP/alice-mcp-server/build/index.js"
+    echo "Found MCP server relative to project root"
 else
-    DEFAULT_MCP_PATH="./node-mcp/build/index.js"
+    # Fallback to prompt
+    echo "⚠️ Warning: Could not find Alice MCP server at standard locations."
+    echo "Please set the ALICE_MCP_SERVER_PATH environment variable before running this script."
+    echo "For example: export ALICE_MCP_SERVER_PATH=/path/to/alice-mcp-server/build/index.js"
+    exit 1
 fi
-MCP_SERVER_PATH=${NODE_MCP_PATH:-$DEFAULT_MCP_PATH}
+
 echo "Starting Alice MCP server (node $MCP_SERVER_PATH)..."
 
 # Check if in debug mode

@@ -19,7 +19,13 @@ Both components now start automatically when the MCP system is initialized, so n
 
 If you encounter any issues with the automatic startup, you can run the script manually with debug mode:
 ```bash
-/bin/zsh /path/to/alice-mcp/scripts/start-alice-servers.sh --debug
+/bin/zsh path/to/alice-mcp/scripts/start-alice-servers.sh --debug
+```
+
+You may need to set the MCP server path environment variable if the script cannot find it automatically:
+```bash
+export ALICE_MCP_SERVER_PATH=path/to/alice-mcp-server/build/index.js
+/bin/zsh path/to/alice-mcp/scripts/start-alice-servers.sh --debug
 ```
 
 ## Core Principles

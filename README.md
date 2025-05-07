@@ -1,4 +1,4 @@
-# Alice - Local MCP Server
+# Alice MCP - Agile Task Management
 
 **Alice** is a lightweight, local server designed to support agile task workflows within AI coding environments like those using the Model Context Protocol (MCP). It provides a backend for managing projects, tasks, epics, and messages locally on your machine, featuring project isolation to support multiple distinct software projects.
 
