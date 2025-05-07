@@ -80,7 +80,16 @@ echo "Set environment variable ALICE_API_URL=$ALICE_API_URL"
 
 # Start the Node MCP server in the foreground
 # This keeps the script running until the MCP server stops
-MCP_SERVER_PATH="/Users/karl/Documents/Cline/MCP/alice-mcp-server/build/index.js"
+# Use the NODE_MCP_PATH env variable if set, otherwise look in the repository
+# Attempt to find the MCP server in standard locations
+if [ -f "$PROJECT_ROOT/../alice-mcp-server/build/index.js" ]; then
+    DEFAULT_MCP_PATH="$PROJECT_ROOT/../alice-mcp-server/build/index.js"
+elif [ -f "$HOME/Documents/Cline/MCP/alice-mcp-server/build/index.js" ]; then
+    DEFAULT_MCP_PATH="$HOME/Documents/Cline/MCP/alice-mcp-server/build/index.js"
+else
+    DEFAULT_MCP_PATH="./node-mcp/build/index.js"
+fi
+MCP_SERVER_PATH=${NODE_MCP_PATH:-$DEFAULT_MCP_PATH}
 echo "Starting Alice MCP server (node $MCP_SERVER_PATH)..."
 
 # Check if in debug mode
