@@ -71,19 +71,21 @@ If you need to run the server manually (for development or testing), you can:
     ```json
     { "name": "my-new-project" }
     ```
-3.  **Get the `project_id`:** You can list projects (`GET /projects/`) or get by name (`GET /projects/by-name/my-new-project`) to find the assigned integer ID.
-4.  **Use project-scoped endpoints:** All subsequent operations for tasks, epics, and messages require the `project_id` in the URL path (e.g., `/{project_id}/tasks/`).
+3.  **Identify your project:** For interacting with tasks, epics, and messages via the Alice MCP server tools, you will use the project's **name** (e.g., "my-new-project") as the `project_id` argument. The MCP server handles the translation to the internal numeric ID required by the API.
+4.  **API Endpoints (Direct API Usage):** If interacting directly with the FastAPI backend (not through the MCP server), all subsequent operations for tasks, epics, and messages require the internal numeric `project_id` in the URL path (e.g., `/{numeric_project_id}/tasks/`). You can find this numeric ID by listing projects (`GET /projects/`) or getting by name (`GET /projects/by-name/my-new-project`).
 
 ## Project Isolation API Structure
 
-Alice uses project IDs in the URL path to ensure data isolation:
+Alice's FastAPI backend uses numeric project IDs in the URL path to ensure data isolation. However, when using the **Alice MCP server tools**, you should provide the project's **name (string)** as the `project_id` argument. The MCP server will resolve this to the correct numeric ID for the API.
+
+Direct API examples:
 
 -   **Project Management:** `/projects/` (e.g., `POST /projects/`, `GET /projects/{project_id}`)
--   **Tasks:** `/{project_id}/tasks/` (e.g., `POST /1/tasks/`, `GET /1/tasks/{task_id}`)
--   **Epics:** `/{project_id}/epics/` (e.g., `POST /1/epics/`, `GET /1/epics/{epic_id}`)
--   **Messages:** `/{project_id}/tasks/{task_id}/messages/` (e.g., `POST /1/tasks/5/messages/`)
+-   **Tasks:** `/{numeric_project_id}/tasks/` (e.g., `POST /1/tasks/`, `GET /1/tasks/{task_id}`)
+-   **Epics:** `/{numeric_project_id}/epics/` (e.g., `POST /1/epics/`, `GET /1/epics/{epic_id}`)
+-   **Messages:** `/{numeric_project_id}/tasks/{task_id}/messages/` (e.g., `POST /1/tasks/5/messages/`)
 
-*Replace `1` with your actual `project_id`.*
+*Replace `1` with the actual internal numeric `project_id` when using the API directly.*
 
 ## Running Tests
 

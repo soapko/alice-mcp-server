@@ -43,12 +43,12 @@ You can adapt the following template for your LLM's custom instructions. This te
 ## Alice MCP Integration
 
 ### Task Tracking Protocol
-  1. Each session REQUIRES a `project_id` to track tasks with Alice. If beginning work on a new project, first:
-     • Use the Alice MCP server to create a new project.
-     • Save the returned project ID for all future work on this project.
+  1. Each session REQUIRES a project identifier to track tasks with Alice.
+     • If beginning work on a new project, first use the Alice MCP server's `create_project` tool. Note the **project name** returned in the response.
+     • For all subsequent Task and Epic operations (e.g., `create_task`, `list_tasks`, `get_epic`), use the project's **name (string)** as the `project_id` argument in the MCP tool call. The server handles the translation to the internal numeric ID.
 
   2. Break down complex tasks into smaller, trackable units:
-     • Create tasks using Alice with the required `project_id` and `title`.
+     • Create tasks using Alice's `create_task` tool with the required `project_id` (the project's name/slug) and `title`.
      • Optional fields: `description`, `assignee`, `status`, `epic_id`.
 
   3. For every coding or significant documentation task, you MUST:
@@ -85,6 +85,6 @@ You can adapt the following template for your LLM's custom instructions. This te
 
 - **Tool Syntax:** Replace descriptive actions (e.g., "Use the Alice MCP server to create...") with the specific tool invocation syntax used by your AI assistant (e.g., `use_mcp_tool`, `<tool_name>`, etc.).
 - **Server Name:** Ensure the correct server name for your Alice MCP instance is used (often just "alice" if running locally via standard MCP setup).
-- **Project ID Handling:** Define how the LLM should obtain and remember the `project_id` for the current session or project context.
+- **Project ID Handling:** Define how the LLM should obtain and remember the project **name** (which serves as the string `project_id` for most MCP tool calls) for the current session or project context.
 
 By integrating Alice task tracking into your LLM's workflow, you can maintain better organization, context, and history for your development projects.

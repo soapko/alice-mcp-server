@@ -9,6 +9,10 @@
  * The server connects to the Alice FastAPI backend running at the URL
  * specified by the ALICE_API_URL environment variable (default: http://127.0.0.1:8000).
  * 
+ * This template reflects the updated approach where Task and Epic related tools
+ * expect a string-based 'project_id' (project name or slug), and the server
+ * handles the lookup to the internal numeric ID required by the API.
+ * 
  * To use this template:
  * 1. Ensure Node.js and npm are installed
  * 2. Create a new MCP server project using npx @modelcontextprotocol/create-server
@@ -40,7 +44,7 @@ enum TaskStatus {
 
 // --- Tool Input Validation Functions ---
 
-// Project validation functions
+// Project validation functions (These use numeric project_id as they interact with /projects/ directly)
 const isValidListProjectsArgs = (args: any): args is { skip?: number; limit?: number } =>
   typeof args === 'object' && args !== null &&
   (args.skip === undefined || typeof args.skip === 'number') &&
@@ -62,133 +66,126 @@ const isValidUpdateProjectArgs = (args: any): args is { project_id: number; name
   (args.path === undefined || typeof args.path === 'string') &&
   (args.description === undefined || typeof args.description === 'string');
 
-// Task validation functions
-const isValidCreateTaskArgs = (args: any): args is { title: string; description?: string; assignee?: string; status?: TaskStatus; epic_id?: number; project_id: number } =>
-  typeof args === 'object' && args !== null && 
+// Task validation functions (These use string project_id)
+const isValidCreateTaskArgs = (args: any): args is { title: string; description?: string; assignee?: string; status?: TaskStatus; epic_id?: number; project_id: string } => {
+  return typeof args === 'object' && args !== null && 
   typeof args.title === 'string' &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.description === undefined || typeof args.description === 'string') &&
   (args.assignee === undefined || typeof args.assignee === 'string') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status)) &&
   (args.epic_id === undefined || typeof args.epic_id === 'number');
+} 
 
-const isValidListTasksArgs = (args: any): args is { skip?: number; limit?: number; status?: TaskStatus; assignee?: string; epic_id?: number; created_after?: string; created_before?: string; project_id: number } =>
+const isValidListTasksArgs = (args: any): args is { skip?: number; limit?: number; status?: TaskStatus; assignee?: string; epic_id?: number; created_after?: string; created_before?: string; project_id: string } =>
   typeof args === 'object' && args !== null &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.skip === undefined || typeof args.skip === 'number') &&
   (args.limit === undefined || typeof args.limit === 'number') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status)) &&
   (args.assignee === undefined || typeof args.assignee === 'string') &&
   (args.epic_id === undefined || typeof args.epic_id === 'number') &&
-  (args.created_after === undefined || typeof args.created_after === 'string') && // Assuming ISO 8601 string
-  (args.created_before === undefined || typeof args.created_before === 'string'); // Assuming ISO 8601 string
+  (args.created_after === undefined || typeof args.created_after === 'string') && 
+  (args.created_before === undefined || typeof args.created_before === 'string');
 
-const isValidGetTaskArgs = (args: any): args is { task_id: number; project_id: number } =>
+const isValidGetTaskArgs = (args: any): args is { task_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.task_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
-const isValidUpdateTaskArgs = (args: any): args is { task_id: number; title?: string; description?: string; status?: TaskStatus; assignee?: string; epic_id?: number; project_id: number } =>
+const isValidUpdateTaskArgs = (args: any): args is { task_id: number; title?: string; description?: string; status?: TaskStatus; assignee?: string; epic_id?: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.task_id === 'number' &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.title === undefined || typeof args.title === 'string') &&
   (args.description === undefined || typeof args.description === 'string') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status)) &&
   (args.assignee === undefined || typeof args.assignee === 'string') &&
   (args.epic_id === undefined || typeof args.epic_id === 'number');
 
-const isValidDeleteTaskArgs = (args: any): args is { task_id: number; project_id: number } =>
+const isValidDeleteTaskArgs = (args: any): args is { task_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.task_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
-// Message validation functions
-const isValidAddMessageArgs = (args: any): args is { task_id: number; author: string; message: string; project_id: number } =>
+// Message validation functions (depend on Task, so project_id is string)
+const isValidAddMessageArgs = (args: any): args is { task_id: number; author: string; message: string; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.task_id === 'number' &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   typeof args.author === 'string' && 
   typeof args.message === 'string';
 
-const isValidGetMessagesArgs = (args: any): args is { task_id: number; project_id: number } =>
+const isValidGetMessagesArgs = (args: any): args is { task_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.task_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
-// Epic validation functions
-const isValidCreateEpicArgs = (args: any): args is { title: string; description?: string; assignee?: string; status?: TaskStatus; project_id: number } =>
+// Epic validation functions (These use string project_id)
+const isValidCreateEpicArgs = (args: any): args is { title: string; description?: string; assignee?: string; status?: TaskStatus; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.title === 'string' &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.description === undefined || typeof args.description === 'string') &&
   (args.assignee === undefined || typeof args.assignee === 'string') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status));
 
-const isValidListEpicsArgs = (args: any): args is { skip?: number; limit?: number; status?: TaskStatus; assignee?: string; created_after?: string; created_before?: string; project_id: number } =>
+const isValidListEpicsArgs = (args: any): args is { skip?: number; limit?: number; status?: TaskStatus; assignee?: string; created_after?: string; created_before?: string; project_id: string } =>
   typeof args === 'object' && args !== null &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.skip === undefined || typeof args.skip === 'number') &&
   (args.limit === undefined || typeof args.limit === 'number') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status)) &&
   (args.assignee === undefined || typeof args.assignee === 'string') &&
-  (args.created_after === undefined || typeof args.created_after === 'string') && // Assuming ISO 8601 string
-  (args.created_before === undefined || typeof args.created_before === 'string'); // Assuming ISO 8601 string
+  (args.created_after === undefined || typeof args.created_after === 'string') && 
+  (args.created_before === undefined || typeof args.created_before === 'string');
 
-const isValidGetEpicArgs = (args: any): args is { epic_id: number; project_id: number } =>
+const isValidGetEpicArgs = (args: any): args is { epic_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.epic_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
-const isValidUpdateEpicArgs = (args: any): args is { epic_id: number; title?: string; description?: string; status?: TaskStatus; assignee?: string; project_id: number } =>
+const isValidUpdateEpicArgs = (args: any): args is { epic_id: number; title?: string; description?: string; status?: TaskStatus; assignee?: string; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.epic_id === 'number' &&
-  typeof args.project_id === 'number' &&
+  typeof args.project_id === 'string' && // Changed to string
   (args.title === undefined || typeof args.title === 'string') &&
   (args.description === undefined || typeof args.description === 'string') &&
   (args.status === undefined || Object.values(TaskStatus).includes(args.status)) &&
   (args.assignee === undefined || typeof args.assignee === 'string');
 
-const isValidDeleteEpicArgs = (args: any): args is { epic_id: number; project_id: number } =>
+const isValidDeleteEpicArgs = (args: any): args is { epic_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.epic_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
-const isValidGetEpicTasksArgs = (args: any): args is { epic_id: number; project_id: number } =>
+const isValidGetEpicTasksArgs = (args: any): args is { epic_id: number; project_id: string } =>
   typeof args === 'object' && args !== null && 
   typeof args.epic_id === 'number' &&
-  typeof args.project_id === 'number';
+  typeof args.project_id === 'string'; // Changed to string
 
 /**
  * Main AliceMcpServer class
- * 
- * This class implements the MCP server for Alice. It:
- * 1. Creates a server instance
- * 2. Sets up handlers for the various tools
- * 3. Handles requests to call tools
- * 4. Manages communication with the FastAPI backend
  */
 class AliceMcpServer {
   private server: Server;
   private axiosInstance;
 
   constructor() {
-    // Initialize the MCP server
     this.server = new Server(
       {
-        name: 'alice-mcp-server',
+        name: 'alice-mcp-server', // Standard server name
         version: '0.1.0',
         description: 'An agile tool for tracking stories for development',
       },
       {
         capabilities: {
-          resources: {}, // No resources defined for now
+          resources: {}, 
           tools: {},
         },
       }
     );
 
-    // Initialize the HTTP client for communicating with the FastAPI backend
     this.axiosInstance = axios.create({
       baseURL: ALICE_API_URL,
       headers: {
@@ -196,10 +193,8 @@ class AliceMcpServer {
       },
     });
 
-    // Set up the tool handlers
     this.setupToolHandlers();
 
-    // Error handling
     this.server.onerror = (error) => console.error('[MCP Error]', error);
     process.on('SIGINT', async () => {
       await this.server.close();
@@ -209,14 +204,11 @@ class AliceMcpServer {
 
   /**
    * Sets up the tool handlers for the MCP server
-   * 
-   * This method defines all the tools that the MCP server provides
-   * and their input schemas.
    */
   private setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
-        // Project tools
+        // Project tools (use numeric project_id for direct project manipulation)
         {
           name: 'list_projects',
           description: 'List projects from Alice',
@@ -234,7 +226,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to retrieve' },
+              project_id: { type: 'number', description: 'Numeric ID of the project to retrieve' },
             },
             required: ['project_id'],
           },
@@ -258,7 +250,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to update' },
+              project_id: { type: 'number', description: 'Numeric ID of the project to update' },
               name: { type: 'string', description: 'New name for the project' },
               path: { type: 'string', description: 'New working directory path for the project' },
               description: { type: 'string', description: 'New description for the project' },
@@ -267,14 +259,14 @@ class AliceMcpServer {
           },
         },
 
-        // Task tools
+        // Task tools (use string project_id - name/slug)
         {
           name: 'create_task',
           description: 'Create a new task in Alice',
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to create the task in' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) to create the task in" },
               title: { type: 'string', description: 'Title of the task' },
               description: { type: 'string', description: 'Optional description of the task' },
               assignee: { type: 'string', description: 'Optional assignee for the task' },
@@ -290,7 +282,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to list tasks from' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) to list tasks from" },
               skip: { type: 'number', description: 'Number of tasks to skip', default: 0 },
               limit: { type: 'number', description: 'Maximum number of tasks to return', default: 100 },
               status: { type: 'string', enum: Object.values(TaskStatus), description: 'Filter by task status' },
@@ -308,7 +300,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the task belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the task belongs to" },
               task_id: { type: 'number', description: 'ID of the task to retrieve' },
             },
             required: ['project_id', 'task_id'],
@@ -320,7 +312,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the task belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the task belongs to" },
               task_id: { type: 'number', description: 'ID of the task to update' },
               title: { type: 'string', description: 'New title for the task' },
               description: { type: 'string', description: 'New description for the task' },
@@ -337,7 +329,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the task belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the task belongs to" },
               task_id: { type: 'number', description: 'ID of the task to delete' },
             },
             required: ['project_id', 'task_id'],
@@ -349,7 +341,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the task belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the task belongs to" },
               task_id: { type: 'number', description: 'ID of the task to add the message to' },
               author: { type: 'string', description: 'Author of the message' },
               message: { type: 'string', description: 'Content of the message' },
@@ -363,21 +355,21 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the task belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the task belongs to" },
               task_id: { type: 'number', description: 'ID of the task to retrieve messages for' },
             },
             required: ['project_id', 'task_id'],
           },
         },
 
-        // Epic tools
+        // Epic tools (use string project_id - name/slug)
         {
           name: 'create_epic',
           description: 'Create a new epic in Alice',
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to create the epic in' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) to create the epic in" },
               title: { type: 'string', description: 'Title of the epic' },
               description: { type: 'string', description: 'Optional description of the epic' },
               assignee: { type: 'string', description: 'Optional assignee for the epic' },
@@ -392,7 +384,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project to list epics from' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) to list epics from" },
               skip: { type: 'number', description: 'Number of epics to skip', default: 0 },
               limit: { type: 'number', description: 'Maximum number of epics to return', default: 100 },
               status: { type: 'string', enum: Object.values(TaskStatus), description: 'Filter by epic status' },
@@ -409,7 +401,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the epic belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the epic belongs to" },
               epic_id: { type: 'number', description: 'ID of the epic to retrieve' },
             },
             required: ['project_id', 'epic_id'],
@@ -421,7 +413,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the epic belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the epic belongs to" },
               epic_id: { type: 'number', description: 'ID of the epic to update' },
               title: { type: 'string', description: 'New title for the epic' },
               description: { type: 'string', description: 'New description for the epic' },
@@ -437,7 +429,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the epic belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the epic belongs to" },
               epic_id: { type: 'number', description: 'ID of the epic to delete' },
             },
             required: ['project_id', 'epic_id'],
@@ -449,7 +441,7 @@ class AliceMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              project_id: { type: 'number', description: 'ID of the project the epic belongs to' },
+              project_id: { type: 'string', description: "The project's name or slug (string identifier) the epic belongs to" },
               epic_id: { type: 'number', description: 'ID of the epic to retrieve tasks for' },
             },
             required: ['project_id', 'epic_id'],
@@ -460,16 +452,33 @@ class AliceMcpServer {
 
     /**
      * Handles tool calls from the MCP client
-     * 
-     * This method processes requests to call tools, validates arguments,
-     * calls the appropriate API endpoint, and returns the results.
      */
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const toolName = request.params.name;
       const args = request.params.arguments;
 
       try {
-        let response;
+        let response; // To store API response
+        // Helper function to resolve project name to numeric ID for relevant tools
+        const resolveProjectId = async (projectName: string): Promise<number> => {
+          try {
+            const projectDetailsResponse = await this.axiosInstance.get(`/projects/by-name/${projectName}`);
+            if (projectDetailsResponse.data && typeof projectDetailsResponse.data.id === 'number') {
+              return projectDetailsResponse.data.id;
+            } else {
+              throw new McpError(ErrorCode.InvalidParams, `Project with name "${projectName}" found but has no valid numeric internal ID.`);
+            }
+          } catch (apiError) {
+            if (axios.isAxiosError(apiError) && apiError.response?.status === 404) {
+              throw new McpError(ErrorCode.InvalidParams, `Project with name "${projectName}" not found.`);
+            }
+            console.error(`Failed to resolve project name "${projectName}":`, apiError);
+            throw new McpError(ErrorCode.InternalError, `Failed to resolve project name "${projectName}".`);
+          }
+        };
+        
+        let numericProjectId: number; // To store resolved numeric ID
+
         switch (toolName) {
           // Project tools
           case 'list_projects':
@@ -479,141 +488,170 @@ class AliceMcpServer {
             break;
           case 'get_project':
             if (!isValidGetProjectArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_project');
-            response = await this.axiosInstance.get(`/projects/${args.project_id}`);
+            response = await this.axiosInstance.get(`/projects/${args.project_id}`); // Uses numeric ID
             break;
-          case 'create_project':
+          case 'create_project': {
             if (!isValidCreateProjectArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for create_project');
-            response = await this.axiosInstance.post('/projects/', args);
-            break;
-          case 'update_project':
+            const createProjectResponse = await this.axiosInstance.post('/projects/', args);
+            const createdProject = createProjectResponse.data;
+            return { // Custom response for create_project
+              content: [{
+                type: 'text',
+                text: `Project "${createdProject.name}" created successfully with internal ID ${createdProject.id}.\nUse "${createdProject.name}" as the project_id for subsequent operations.`
+              }, {
+                type: 'json',
+                json: createdProject
+              }]
+            };
+          }
+          case 'update_project': { 
             if (!isValidUpdateProjectArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for update_project');
-            const { project_id, ...updateProjectData } = args;
+            const { project_id, ...updateProjectData } = args; // project_id is numeric here
             response = await this.axiosInstance.put(`/projects/${project_id}`, updateProjectData);
             break;
+          }
 
           // Task tools
           case 'create_task':
             if (!isValidCreateTaskArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for create_task');
-            const { project_id: createTaskProjectId, ...createTaskData } = args;
-            response = await this.axiosInstance.post(`/${createTaskProjectId}/tasks/`, createTaskData);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: createTaskProjectStringId, ...createTaskData } = args;
+            response = await this.axiosInstance.post(`/${numericProjectId}/tasks/`, createTaskData);
             break;
-          case 'list_tasks':
+          case 'list_tasks': { 
             if (!isValidListTasksArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for list_tasks');
-            const { project_id: listTasksProjectId, ...listTaskFilters } = args;
-            // Filter out undefined params before sending
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: listTasksProjectStringId, ...listTaskFilters } = args;
             const listParams = Object.fromEntries(Object.entries(listTaskFilters).filter(([_, v]) => v !== undefined));
-            response = await this.axiosInstance.get(`/${listTasksProjectId}/tasks/`, { params: listParams });
+            response = await this.axiosInstance.get(`/${numericProjectId}/tasks/`, { params: listParams });
             break;
-          case 'get_task':
+          }
+          case 'get_task': {
             if (!isValidGetTaskArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_task');
-            const { project_id: getTaskProjectId, task_id: getTaskId } = args;
-            response = await this.axiosInstance.get(`/${getTaskProjectId}/tasks/${getTaskId}`);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: getTaskProjectStringId, task_id: getTaskId } = args; 
+            response = await this.axiosInstance.get(`/${numericProjectId}/tasks/${getTaskId}`);
             break;
-          case 'update_task':
+          }
+          case 'update_task': {
             if (!isValidUpdateTaskArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for update_task');
-            const { project_id: updateTaskProjectId, task_id: updateTaskId, ...updateTaskData } = args;
-            response = await this.axiosInstance.put(`/${updateTaskProjectId}/tasks/${updateTaskId}`, updateTaskData);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: updateTaskProjectStringId, task_id: updateTaskId, ...updateTaskData } = args; 
+            response = await this.axiosInstance.put(`/${numericProjectId}/tasks/${updateTaskId}`, updateTaskData);
             break;
-          case 'delete_task':
+          }
+          case 'delete_task': {
             if (!isValidDeleteTaskArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for delete_task');
-            const { project_id: deleteTaskProjectId, task_id: deleteTaskId } = args;
-            response = await this.axiosInstance.delete(`/${deleteTaskProjectId}/tasks/${deleteTaskId}`);
-            // Delete returns 204 No Content, so create a success message
-            return { content: [{ type: 'text', text: `Task ${deleteTaskId} deleted successfully.` }] };
-          case 'add_message':
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: deleteTaskProjectStringId, task_id: deleteTaskId } = args; 
+            await this.axiosInstance.delete(`/${numericProjectId}/tasks/${deleteTaskId}`);
+            return { content: [{ type: 'text', text: `Task ${deleteTaskId} deleted successfully from project ${args.project_id}.` }] };
+          }
+          case 'add_message': {
             if (!isValidAddMessageArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for add_message');
-            const { project_id: addMessageProjectId, task_id: addMessageTaskId, ...messageData } = args;
-            response = await this.axiosInstance.post(`/${addMessageProjectId}/tasks/${addMessageTaskId}/messages/`, messageData);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: addMessageProjectStringId, task_id: addMessageTaskId, ...messageData } = args; 
+            response = await this.axiosInstance.post(`/${numericProjectId}/tasks/${addMessageTaskId}/messages/`, messageData);
             break;
-          case 'get_messages':
+          }
+          case 'get_messages': {
             if (!isValidGetMessagesArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_messages');
-            const { project_id: getMessagesProjectId, task_id: getMessagesTaskId } = args;
-            response = await this.axiosInstance.get(`/${getMessagesProjectId}/tasks/${getMessagesTaskId}/messages/`);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: getMessagesProjectStringId, task_id: getMessagesTaskId } = args; 
+            response = await this.axiosInstance.get(`/${numericProjectId}/tasks/${getMessagesTaskId}/messages/`);
             break;
+          }
 
           // Epic tools
-          case 'create_epic':
+          case 'create_epic': {
             if (!isValidCreateEpicArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for create_epic');
-            const { project_id: createEpicProjectId, ...createEpicData } = args;
-            response = await this.axiosInstance.post(`/${createEpicProjectId}/epics/`, createEpicData);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: createEpicProjectStringId, ...createEpicData } = args; 
+            response = await this.axiosInstance.post(`/${numericProjectId}/epics/`, createEpicData);
             break;
-          case 'list_epics':
+          }
+          case 'list_epics': {
             if (!isValidListEpicsArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for list_epics');
-            const { project_id: listEpicsProjectId, ...listEpicsFilters } = args;
-            // Filter out undefined params before sending
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: listEpicsProjectStringId, ...listEpicsFilters } = args; 
             const listEpicsParams = Object.fromEntries(Object.entries(listEpicsFilters).filter(([_, v]) => v !== undefined));
-            response = await this.axiosInstance.get(`/${listEpicsProjectId}/epics/`, { params: listEpicsParams });
+            response = await this.axiosInstance.get(`/${numericProjectId}/epics/`, { params: listEpicsParams });
             break;
-          case 'get_epic':
+          }
+          case 'get_epic': {
             if (!isValidGetEpicArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_epic');
-            const { project_id: getEpicProjectId, epic_id: getEpicId } = args;
-            response = await this.axiosInstance.get(`/${getEpicProjectId}/epics/${getEpicId}`);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: getEpicProjectStringId, epic_id: getEpicId } = args; 
+            response = await this.axiosInstance.get(`/${numericProjectId}/epics/${getEpicId}`);
             break;
-          case 'update_epic':
+          }
+          case 'update_epic': {
             if (!isValidUpdateEpicArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for update_epic');
-            const { project_id: updateEpicProjectId, epic_id: updateEpicId, ...updateEpicData } = args;
-            response = await this.axiosInstance.put(`/${updateEpicProjectId}/epics/${updateEpicId}`, updateEpicData);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: updateEpicProjectStringId, epic_id: updateEpicId, ...updateEpicData } = args; 
+            response = await this.axiosInstance.put(`/${numericProjectId}/epics/${updateEpicId}`, updateEpicData);
             break;
-          case 'delete_epic':
+          }
+          case 'delete_epic': {
             if (!isValidDeleteEpicArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for delete_epic');
-            const { project_id: deleteEpicProjectId, epic_id: deleteEpicId } = args;
-            response = await this.axiosInstance.delete(`/${deleteEpicProjectId}/epics/${deleteEpicId}`);
-            // Delete returns 204 No Content, so create a success message
-            return { content: [{ type: 'text', text: `Epic ${deleteEpicId} deleted successfully.` }] };
-          case 'get_epic_tasks':
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: deleteEpicProjectStringId, epic_id: deleteEpicId } = args; 
+            await this.axiosInstance.delete(`/${numericProjectId}/epics/${deleteEpicId}`);
+            return { content: [{ type: 'text', text: `Epic ${deleteEpicId} deleted successfully from project ${args.project_id}.` }] };
+          }
+          case 'get_epic_tasks': {
             if (!isValidGetEpicTasksArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_epic_tasks');
-            const { project_id: getEpicTasksProjectId, epic_id: getEpicTasksId } = args;
-            response = await this.axiosInstance.get(`/${getEpicTasksProjectId}/epics/${getEpicTasksId}/tasks`);
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: getEpicTasksProjectStringId, epic_id: getEpicTasksId } = args; 
+            response = await this.axiosInstance.get(`/${numericProjectId}/epics/${getEpicTasksId}/tasks`);
             break;
+          }
 
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${toolName}`);
         }
 
+        // Default response formatting
         return {
           content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }],
         };
-        } catch (error) {
-          let errorMessage = `Error calling tool ${toolName}`;
-          let isError = true;
-          if (axios.isAxiosError(error)) {
-            errorMessage = `Alice API error (${error.response?.status}): ${error.response?.data?.detail || error.message}`;
-            // If Alice returns 404, treat it as a specific error, not a general server error
-            if (error.response?.status === 404) {
-               return { content: [{ type: 'text', text: errorMessage }], isError: false }; // Return as non-error for 404
-            }
-          } else if (error instanceof McpError) {
-             errorMessage = error.message; // Use the specific MCP error message
-          } else if (error instanceof Error) {
-             errorMessage = error.message;
+      } catch (error) {
+        let errorMessage = `Error calling tool ${toolName}`;
+        let isError = true; // Assume it's an error unless specifically handled (like 404)
+        if (axios.isAxiosError(error)) {
+          errorMessage = `Alice API error (${error.response?.status}): ${error.response?.data?.detail || error.message}`;
+          if (error.response?.status === 404) {
+             // For 404s, we might not want to flag it as a critical MCP error, 
+             // but rather as a "not found" which is a valid outcome.
+             // The `isError` flag in MCP response can control this behavior.
+             // For now, keeping it as an error to be explicit.
           }
-          console.error(`Error in tool ${toolName}:`, error);
-          // Return error details in the response
-          return {
-            content: [{ type: 'text', text: errorMessage }],
-            isError: isError,
-          };
+        } else if (error instanceof McpError) {
+           errorMessage = error.message;
+        } else if (error instanceof Error) {
+           errorMessage = error.message;
         }
+        console.error(`Error in tool ${toolName}:`, error);
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: isError, 
+        };
       }
     });
   }
 
   /**
    * Start the MCP server
-   * 
-   * This method connects to the transport and starts the server.
    */
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Alice MCP server running on stdio');
+    console.error('Alice MCP server running on stdio'); // Log to stderr so it doesn't interfere with MCP protocol on stdout
   }
 }
 
 /**
  * Create and run the server
- * 
- * This is the entry point for the MCP server.
  */
 const server = new AliceMcpServer();
 server.run().catch(console.error);
