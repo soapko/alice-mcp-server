@@ -292,24 +292,44 @@ export ALICE_MCP_SERVER_PATH="/path/to/your/alice-mcp-server/build/index.js"
 
 To update Alice:
 
-1. Update the FastAPI backend:
-   ```bash
-   cd path/to/alice-mcp
-   git pull
-   source alice-env/bin/activate
-   pip install -r requirements.txt
-   ```
+1.  **Update the Main Alice Project Source Code:**
+    This is the primary repository containing the FastAPI backend and the MCP server template.
+    ```bash
+    cd /path/to/your/main/alice-project # (e.g., where you cloned alice-mcp or your project is located)
+    git pull
+    source alice-env/bin/activate # Or your equivalent environment activation
+    pip install -r requirements.txt
+    ```
 
-2. Update the MCP server if needed (may require rebuilding the TypeScript code)
-   ```bash
-   cd ~/Documents/Cline/MCP/alice-mcp-server
-   # If you're using a git repository for the MCP server:
-   git pull
-   npm install
-   npm run build
-   ```
+2.  **Update and Rebuild the MCP Server:**
+    The MCP server runs from the `~/Documents/Cline/MCP/alice-mcp-server` directory (or your custom specified path using the `-d` flag with the setup script). This directory's content is generated from the template in the main Alice project. To update it:
+    *   **If you used the setup script (`scripts/setup-alice-mcp.sh`):**
+        It's generally safest to re-run the setup script. It should handle copying the updated template from your main Alice project and rebuilding. You might consider removing the existing `~/Documents/Cline/MCP/alice-mcp-server` directory first if you want a completely fresh build, or ensure the script can overwrite existing files (it will prompt you).
+        ```bash
+        # Navigate to your main Alice project directory
+        cd /path/to/your/main/alice-project 
+        ./scripts/setup-alice-mcp.sh 
+        # If you used a custom directory for the MCP server previously, use the -d flag:
+        # ./scripts/setup-alice-mcp.sh -d /your/custom/mcp/server/path
+        ```
+    *   **If you set up manually or prefer a manual update:**
+        a.  Copy the updated template from your main Alice project to the MCP server's source directory:
+            ```bash
+            cp /path/to/your/main/alice-project/templates/alice-mcp-template.ts ~/Documents/Cline/MCP/alice-mcp-server/src/index.ts
+            # Or to your custom MCP server path if different
+            # cp /path/to/your/main/alice-project/templates/alice-mcp-template.ts /your/custom/mcp/server/path/src/index.ts
+            ```
+        b.  Navigate to the MCP server directory and rebuild:
+            ```bash
+            cd ~/Documents/Cline/MCP/alice-mcp-server 
+            # Or cd /your/custom/mcp/server/path
+            npm install # If dependencies in the template might have changed
+            npm run build
+            ```
 
-3. Restart Cline to apply the changes
+    **Important:** The `~/Documents/Cline/MCP/alice-mcp-server` directory (or your custom path) is primarily a build output location for the MCP server. It should not typically be a separate git repository that you `git pull` into if you are using the template-based setup originating from the main Alice project. The source of truth for the MCP server's code is the `templates/alice-mcp-template.ts` file in your main Alice project.
+
+3.  **Restart Cline** to apply any changes to the MCP server configuration or executable.
 
 ## Architecture Overview
 
