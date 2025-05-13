@@ -656,26 +656,24 @@ class AliceMcpServer {
 const server = new AliceMcpServer();
 server.run().catch(console.error);
 
-/**
- * Note: Before building and running this server, you need to install the required dependencies:
- * 
- * npm install @modelcontextprotocol/sdk axios
- * npm install --save-dev typescript @types/node
- * 
- * The tsconfig.json should include:
- * {
- *   "compilerOptions": {
- *     "target": "ES2020",
- *     "module": "NodeNext",
- *     "moduleResolution": "NodeNext",
- *     "esModuleInterop": true,
- *     "outDir": "./build",
- *     "strict": true,
- *     "resolveJsonModule": true
- *   },
- *   "include": ["src/**/*"]
- * }
- * 
- * Build the server with:
- * npm run build
- */
+// Note: Before building and running this server, you need to install the required dependencies:
+//
+// npm install @modelcontextprotocol/sdk axios
+// npm install --save-dev typescript @types/node
+//
+// The tsconfig.json should include:
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "module": "NodeNext",
+//     "moduleResolution": "NodeNext",
+//     "esModuleInterop": true,
+//     "outDir": "./build",
+//     "strict": true,
+//     "resolveJsonModule": true
+//   },
+//   "include": ["src/**/*"]
+// }
+//
+// Build the server with:
+// npm run build
