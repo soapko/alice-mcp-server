@@ -23,6 +23,14 @@ class Project(ProjectBase):
     class Config:
         from_attributes = True
 
+# Schema for basic project identification (ID and Name)
+class ProjectIdentifier(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
 
 # Schemas for Messages
 class MessageBase(BaseModel):

@@ -30,21 +30,21 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
     db.refresh(db_project)
     return db_project
 
-@router.get("/", response_model=List[str])
+@router.get("/", response_model=List[schemas.ProjectIdentifier]) # Changed response_model
 def read_projects(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     """
-    Get a list of all unique project names/IDs.
+    Get a list of all projects with their ID and name.
     
     Provides pagination with skip/limit parameters.
     """
-    # Just return the project names
-    projects = db.query(models.Project.name).offset(skip).limit(limit).all()
-    # Extract names from the result tuples
-    return [project.name for project in projects]
+    # Return project ID and name
+    projects = db.query(models.Project.id, models.Project.name).order_by(models.Project.id).offset(skip).limit(limit).all()
+    # FastAPI will map these to ProjectIdentifier schema
+    return projects
 
 @router.get("/{project_id}", response_model=schemas.Project)
 def read_project(project_id: int, db: Session = Depends(get_db)):

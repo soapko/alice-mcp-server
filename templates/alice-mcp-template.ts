@@ -497,10 +497,7 @@ class AliceMcpServer {
             return { // Custom response for create_project
               content: [{
                 type: 'text',
-                text: `Project "${createdProject.name}" created successfully with internal ID ${createdProject.id}.\nUse "${createdProject.name}" as the project_id for subsequent operations.`
-              }, {
-                type: 'json',
-                json: createdProject
+                text: `Project "${createdProject.name}" created successfully with internal ID ${createdProject.id}.\nUse "${createdProject.name}" as the project_id for subsequent operations.\nDetails: ${JSON.stringify(createdProject, null, 2)}`
               }]
             };
           }

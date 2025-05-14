@@ -15,18 +15,18 @@ router = APIRouter(
 def create_message_for_task(
     task_id: int, 
     message: schemas.MessageCreate, 
-    project_id: str = Path(..., description="The ID of the project the task belongs to"),
+    project_id: int = Path(..., description="The NUMERIC ID of the project the task belongs to"), # Changed to int
     db: Session = Depends(get_db)
 ):
-    # Verify project exists
-    db_project = db.query(models.Project).filter(models.Project.name == project_id).first()
+    # Verify project exists by its numeric ID
+    db_project = db.query(models.Project).filter(models.Project.id == project_id).first() # Changed to filter by models.Project.id
     if db_project is None:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Project with numeric ID '{project_id}' not found") # Updated error message
     
-    # Find task by both ID and project_id
+    # Find task by both ID and project_id (which is now numeric)
     db_task = db.query(models.Task).filter(
         models.Task.id == task_id,
-        models.Task.project_id == db_project.id
+        models.Task.project_id == project_id # project_id is now numeric
     ).first()
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -40,18 +40,18 @@ def create_message_for_task(
 @router.get("/", response_model=List[schemas.Message])
 def read_messages_for_task(
     task_id: int, 
-    project_id: str = Path(..., description="The ID of the project the task belongs to"),
+    project_id: int = Path(..., description="The NUMERIC ID of the project the task belongs to"), # Changed to int
     db: Session = Depends(get_db)
 ):
-    # Verify project exists
-    db_project = db.query(models.Project).filter(models.Project.name == project_id).first()
+    # Verify project exists by its numeric ID
+    db_project = db.query(models.Project).filter(models.Project.id == project_id).first() # Changed to filter by models.Project.id
     if db_project is None:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Project with numeric ID '{project_id}' not found") # Updated error message
     
-    # Find task by both ID and project_id
+    # Find task by both ID and project_id (which is now numeric)
     db_task = db.query(models.Task).filter(
         models.Task.id == task_id,
-        models.Task.project_id == db_project.id
+        models.Task.project_id == project_id # project_id is now numeric
     ).first()
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
