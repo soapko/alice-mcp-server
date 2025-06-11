@@ -10,6 +10,8 @@ EpicRef = ForwardRef('Epic')
 # Schemas for Projects
 class ProjectBase(BaseModel):
     name: str
+    description: Optional[str] = None
+    path: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass

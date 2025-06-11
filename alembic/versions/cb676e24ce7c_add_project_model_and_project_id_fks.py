@@ -29,51 +29,73 @@ def upgrade() -> None:
         sa.UniqueConstraint('name')
     )
     op.create_index(op.f('ix_projects_id'), 'projects', ['id'], unique=False)
-    
-    # Add project_id columns (initially nullable for data migration)
-    op.add_column('epics', sa.Column('project_id', sa.Integer(), nullable=True))
-    op.create_foreign_key('fk_epics_project_id', 'epics', 'projects', ['project_id'], ['id'])
-    
-    op.add_column('tasks', sa.Column('project_id', sa.Integer(), nullable=True))
-    op.create_foreign_key('fk_tasks_project_id', 'tasks', 'projects', ['project_id'], ['id'])
-    
-    # Create "default" project
-    default_project = """
-    INSERT INTO projects (name) VALUES ('default');
-    """
-    op.execute(default_project)
-    
-    # Update existing tasks and epics to point to the default project
-    op.execute("""
-    UPDATE epics 
-    SET project_id = (SELECT id FROM projects WHERE name = 'default')
-    WHERE project_id IS NULL;
-    """)
-    
-    op.execute("""
-    UPDATE tasks 
-    SET project_id = (SELECT id FROM projects WHERE name = 'default')
-    WHERE project_id IS NULL;
-    """)
-    
-    # Make project_id non-nullable now that all records have a value
-    op.alter_column('epics', 'project_id', nullable=False)
-    op.alter_column('tasks', 'project_id', nullable=False)
+
+    # Create the epics table
+    op.create_table('epics',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('title', sa.String(), nullable=False),
+        sa.Column('description', sa.Text(), nullable=True),
+        sa.Column('status', sa.Enum('TODO', 'IN_PROGRESS', 'DONE', 'CANCELED', name='taskstatus'), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('assignee', sa.String(), nullable=True),
+        sa.Column('project_id', sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_epics_id'), 'epics', ['id'], unique=False)
+
+    # Create the tasks table
+    op.create_table('tasks',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('title', sa.String(), nullable=False),
+        sa.Column('description', sa.Text(), nullable=True),
+        sa.Column('status', sa.Enum('TODO', 'IN_PROGRESS', 'DONE', 'CANCELED', name='taskstatus'), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('assignee', sa.String(), nullable=True),
+        sa.Column('epic_id', sa.Integer(), nullable=True),
+        sa.Column('project_id', sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(['epic_id'], ['epics.id'], ),
+        sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_tasks_id'), 'tasks', ['id'], unique=False)
+
+    # Create the messages table
+    op.create_table('messages',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('task_id', sa.Integer(), nullable=False),
+        sa.Column('author', sa.String(), nullable=False),
+        sa.Column('message', sa.Text(), nullable=False),
+        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+        sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_messages_id'), 'messages', ['id'], unique=False)
+
+    # Create the status_history table
+    op.create_table('status_history',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('task_id', sa.Integer(), nullable=False),
+        sa.Column('old_status', sa.Enum('TODO', 'IN_PROGRESS', 'DONE', 'CANCELED', name='taskstatus'), nullable=False),
+        sa.Column('new_status', sa.Enum('TODO', 'IN_PROGRESS', 'DONE', 'CANCELED', name='taskstatus'), nullable=False),
+        sa.Column('changed_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+        sa.ForeignKeyConstraint(['task_id'], ['tasks.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_status_history_id'), 'status_history', ['id'], unique=False)
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Make columns nullable again for removal
-    op.alter_column('epics', 'project_id', nullable=True)
-    op.alter_column('tasks', 'project_id', nullable=True)
-    
-    # Drop foreign keys and columns
-    op.drop_constraint('fk_tasks_project_id', 'tasks', type_='foreignkey')
-    op.drop_column('tasks', 'project_id')
-    
-    op.drop_constraint('fk_epics_project_id', 'epics', type_='foreignkey')
-    op.drop_column('epics', 'project_id')
-    
-    # Drop the projects table last
+    op.drop_index(op.f('ix_status_history_id'), table_name='status_history')
+    op.drop_table('status_history')
+    op.drop_index(op.f('ix_messages_id'), table_name='messages')
+    op.drop_table('messages')
+    op.drop_index(op.f('ix_tasks_id'), table_name='tasks')
+    op.drop_table('tasks')
+    op.drop_index(op.f('ix_epics_id'), table_name='epics')
+    op.drop_table('epics')
     op.drop_index(op.f('ix_projects_id'), table_name='projects')
     op.drop_table('projects')
