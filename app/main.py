@@ -12,7 +12,7 @@ from datetime import datetime
 from starlette.responses import Response
 
 from .database import engine, Base, SessionLocal
-from .routers import tasks, messages, epics, projects
+from .routers import tasks, messages, epics, projects, decisions, project_plans
 from . import models, schemas
 
 # Configure logging
@@ -50,6 +50,8 @@ app.include_router(projects.router)  # Add projects router first
 app.include_router(tasks.router)
 app.include_router(messages.router)
 app.include_router(epics.router)
+app.include_router(decisions.router)
+app.include_router(project_plans.router)
 
 # Exception Handlers
 @app.exception_handler(RequestValidationError)

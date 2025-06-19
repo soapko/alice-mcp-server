@@ -42,6 +42,13 @@ enum TaskStatus {
   CANCELED = "Canceled",
 }
 
+enum DecisionStatus {
+  PROPOSED = "Proposed",
+  ACCEPTED = "Accepted",
+  REJECTED = "Rejected",
+  SUPERSEDED = "Superseded",
+}
+
 // --- Tool Input Validation Functions ---
 
 // Project validation functions (These use numeric project_id as they interact with /projects/ directly)
@@ -163,6 +170,29 @@ const isValidGetEpicTasksArgs = (args: any): args is { epic_id: number; project_
   typeof args === 'object' && args !== null && 
   typeof args.epic_id === 'number' &&
   typeof args.project_id === 'string'; // Changed to string
+
+// Validation functions for Project Plan
+const isValidGetPriorityPlanArgs = (args: any): args is { project_id: string } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string';
+
+const isValidUpdatePriorityPlanArgs = (args: any): args is { project_id: string; plan_updates: { task_id: number; rationale?: string }[] } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && Array.isArray(args.plan_updates);
+
+const isValidGetNextTaskArgs = (args: any): args is { project_id: string } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string';
+
+// Validation functions for Decisions
+const isValidCreateDecisionArgs = (args: any): args is { project_id: string; title: string; context_md?: string; decision_md?: string; consequences_md?: string; task_id?: number } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && typeof args.title === 'string';
+
+const isValidListDecisionsArgs = (args: any): args is { project_id: string; skip?: number; limit?: number } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string';
+
+const isValidGetDecisionArgs = (args: any): args is { project_id: string; decision_id: number } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && typeof args.decision_id === 'number';
+
+const isValidUpdateDecisionArgs = (args: any): args is { project_id: string; decision_id: number; title?: string; context_md?: string; decision_md?: string; consequences_md?: string; status?: DecisionStatus } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && typeof args.decision_id === 'number';
 
 /**
  * Main AliceMcpServer class
@@ -447,6 +477,110 @@ class AliceMcpServer {
             required: ['project_id', 'epic_id'],
           },
         },
+        // Project Plan tools
+        {
+          name: 'get_priority_plan',
+          description: 'Get the prioritized project plan',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+            },
+            required: ['project_id'],
+          },
+        },
+        {
+          name: 'update_priority_plan',
+          description: 'Update the prioritized project plan',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              plan_updates: { 
+                type: 'array', 
+                items: {
+                  type: 'object',
+                  properties: {
+                    task_id: { type: 'number' },
+                    rationale: { type: 'string' },
+                  },
+                  required: ['task_id'],
+                },
+              },
+            },
+            required: ['project_id', 'plan_updates'],
+          },
+        },
+        {
+          name: 'get_next_task',
+          description: 'Get the next actionable task from the project plan',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+            },
+            required: ['project_id'],
+          },
+        },
+        // Decision tools
+        {
+          name: 'create_decision',
+          description: 'Create a new decision record',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              title: { type: 'string' },
+              context_md: { type: 'string' },
+              decision_md: { type: 'string' },
+              consequences_md: { type: 'string' },
+              task_id: { type: 'number' },
+            },
+            required: ['project_id', 'title'],
+          },
+        },
+        {
+          name: 'list_decisions',
+          description: 'List all decisions for a project',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              skip: { type: 'number' },
+              limit: { type: 'number' },
+            },
+            required: ['project_id'],
+          },
+        },
+        {
+          name: 'get_decision',
+          description: 'Get a specific decision by ID',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              decision_id: { type: 'number' },
+            },
+            required: ['project_id', 'decision_id'],
+          },
+        },
+        {
+          name: 'update_decision',
+          description: 'Update an existing decision',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              decision_id: { type: 'number' },
+              title: { type: 'string' },
+              context_md: { type: 'string' },
+              decision_md: { type: 'string' },
+              consequences_md: { type: 'string' },
+              status: { type: 'string', enum: Object.values(DecisionStatus) },
+            },
+            required: ['project_id', 'decision_id'],
+          },
+        },
       ],
     }));
 
@@ -603,6 +737,48 @@ class AliceMcpServer {
             response = await this.axiosInstance.get(`/${numericProjectId}/epics/${getEpicTasksId}/tasks`);
             break;
           }
+
+          // Project Plan cases
+          case 'get_priority_plan':
+            if (!isValidGetPriorityPlanArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_priority_plan');
+            numericProjectId = await resolveProjectId(args.project_id);
+            response = await this.axiosInstance.get(`/${numericProjectId}/priority-plan/`);
+            break;
+          case 'update_priority_plan':
+            if (!isValidUpdatePriorityPlanArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for update_priority_plan');
+            numericProjectId = await resolveProjectId(args.project_id);
+            response = await this.axiosInstance.put(`/${numericProjectId}/priority-plan/`, args.plan_updates);
+            break;
+          case 'get_next_task':
+            if (!isValidGetNextTaskArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_next_task');
+            numericProjectId = await resolveProjectId(args.project_id);
+            response = await this.axiosInstance.get(`/${numericProjectId}/priority-plan/next-task`);
+            break;
+
+          // Decision cases
+          case 'create_decision':
+            if (!isValidCreateDecisionArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for create_decision');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: createDecisionProjectStringId, ...createDecisionData } = args;
+            response = await this.axiosInstance.post(`/${numericProjectId}/decisions/`, createDecisionData);
+            break;
+          case 'list_decisions':
+            if (!isValidListDecisionsArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for list_decisions');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: listDecisionsProjectStringId, ...listDecisionsFilters } = args;
+            response = await this.axiosInstance.get(`/${numericProjectId}/decisions/`, { params: listDecisionsFilters });
+            break;
+          case 'get_decision':
+            if (!isValidGetDecisionArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for get_decision');
+            numericProjectId = await resolveProjectId(args.project_id);
+            response = await this.axiosInstance.get(`/${numericProjectId}/decisions/${args.decision_id}`);
+            break;
+          case 'update_decision':
+            if (!isValidUpdateDecisionArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for update_decision');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: updateDecisionProjectStringId, decision_id: updateDecisionId, ...updateDecisionData } = args;
+            response = await this.axiosInstance.put(`/${numericProjectId}/decisions/${updateDecisionId}`, updateDecisionData);
+            break;
 
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${toolName}`);

@@ -18,6 +18,8 @@ class Project(Base):
     # Relationships
     epics = relationship("Epic", back_populates="project")
     tasks = relationship("Task", back_populates="project")
+    decisions = relationship("Decision", back_populates="project")
+    task_priorities = relationship("TaskPriority", back_populates="project")
 
 
 class TaskStatus(str, enum.Enum):
@@ -61,6 +63,8 @@ class Task(Base):
     status_history = relationship("StatusHistory", back_populates="task", cascade="all, delete-orphan")
     epic = relationship("Epic", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
+    decision = relationship("Decision", back_populates="task")
+    priority = relationship("TaskPriority", back_populates="task", uselist=False)
 
 class Message(Base):
     __tablename__ = "messages"
@@ -83,3 +87,42 @@ class StatusHistory(Base):
     changed_at = Column(DateTime(timezone=True), server_default=func.now())
 
     task = relationship("Task", back_populates="status_history")
+
+
+class DecisionStatus(str, enum.Enum):
+    PROPOSED = "Proposed"
+    ACCEPTED = "Accepted"
+    REJECTED = "Rejected"
+    SUPERSEDED = "Superseded"
+
+class Decision(Base):
+    __tablename__ = "decisions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    title = Column(String, nullable=False)
+    context_md = Column(Text)
+    decision_md = Column(Text)
+    consequences_md = Column(Text)
+    status = Column(SQLEnum(DecisionStatus), nullable=False, default=DecisionStatus.PROPOSED)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    project = relationship("Project", back_populates="decisions")
+    task = relationship("Task", back_populates="decision")
+
+class TaskPriority(Base):
+    __tablename__ = "task_priorities"
+    __table_args__ = (UniqueConstraint('project_id', 'task_id', name='_project_task_uc'),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False, unique=True)
+    position = Column(Integer, nullable=False)
+    rationale = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    project = relationship("Project", back_populates="task_priorities")
+    task = relationship("Task", back_populates="priority")

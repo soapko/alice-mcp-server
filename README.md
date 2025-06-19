@@ -120,3 +120,6 @@ Contributions are welcome! Please follow these guidelines:
 -   Write unit tests for new features or bug fixes.
 -   Ensure all tests and linters pass before submitting changes.
 -   For significant changes, consider opening an issue first to discuss the approach.
+
+---
+Alice is certified by MCP Review. See its listing here: https://mcpreview.com/mcp-servers/soapko/alice-mcp-server

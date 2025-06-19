@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional, ForwardRef
-from .models import TaskStatus
+from .models import TaskStatus, DecisionStatus
 
 # Forward reference for Task in Epic and Project
 TaskRef = ForwardRef('Task')
+DecisionRef = ForwardRef('Decision')
+TaskPriorityRef = ForwardRef('TaskPriority')
 EpicRef = ForwardRef('Epic')
 
 # Schemas for Projects
@@ -21,6 +23,8 @@ class Project(ProjectBase):
     created_at: datetime
     tasks: List[TaskRef] = []
     epics: List[EpicRef] = []
+    decisions: List[DecisionRef] = []
+    task_priorities: List[TaskPriorityRef] = []
 
     class Config:
         from_attributes = True
@@ -126,10 +130,69 @@ class Task(TaskCore):
     status_history: List[StatusHistory] = []
     # Remove the epic field to avoid circular references
     # We already have epic_id from TaskBase
+    priority: Optional[TaskPriorityRef] = None
 
     class Config:
         from_attributes = True
 
+# Schemas for Decisions
+class DecisionBase(BaseModel):
+    title: str
+    context_md: Optional[str] = None
+    decision_md: Optional[str] = None
+    consequences_md: Optional[str] = None
+    status: DecisionStatus = DecisionStatus.PROPOSED
+    task_id: Optional[int] = None
+
+class DecisionCreate(DecisionBase):
+    pass
+
+class DecisionUpdate(BaseModel):
+    title: Optional[str] = None
+    context_md: Optional[str] = None
+    decision_md: Optional[str] = None
+    consequences_md: Optional[str] = None
+    status: Optional[DecisionStatus] = None
+
+class Decision(DecisionBase):
+    id: int
+    project_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# Schemas for Task Priorities (Project Plan)
+class TaskPriorityBase(BaseModel):
+    task_id: int
+    position: int
+    rationale: Optional[str] = None
+
+class TaskPriorityCreate(TaskPriorityBase):
+    pass
+
+class TaskPriorityUpdate(BaseModel):
+    position: Optional[int] = None
+    rationale: Optional[str] = None
+
+class TaskPriority(TaskPriorityBase):
+    id: int
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
+class ProjectPlanEntry(BaseModel):
+    task: Task
+    rationale: Optional[str] = None
+    position: int
+
+class ProjectPlanUpdate(BaseModel):
+    task_id: int
+    rationale: Optional[str] = None
+
 # Resolve forward references
 Epic.update_forward_refs()
 Project.update_forward_refs()
+Task.update_forward_refs()
