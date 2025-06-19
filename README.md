@@ -9,6 +9,8 @@ See the [Documentation](#documentation) section for links to detailed guides.
 - **Project Management:** Create and manage distinct projects.
 - **Task & Epic Tracking:** Organize work using tasks and group them into epics.
 - **Message Logging:** Attach messages or notes to specific tasks.
+- **Dynamic Project Planning:** Create and manage a prioritized backlog of tasks. Alice can always tell you what the next most important task is, ensuring development efforts are perfectly aligned with project goals.
+- **Architectural Decision Records (ADR):** Document key architectural decisions, their context, and consequences, providing a durable and queryable history of your project's evolution.
 - **Project Isolation:** All tasks, epics, and messages are scoped to a project.
 - **Local Operation:** Runs entirely on your local machine using a simple SQLite database.
 - **MCP Integration:** Designed to be used as a tool provider within an MCP environment.
@@ -86,6 +88,28 @@ Direct API examples:
 -   **Messages:** `/{numeric_project_id}/tasks/{task_id}/messages/` (e.g., `POST /1/tasks/5/messages/`)
 
 *Replace `1` with the actual internal numeric `project_id` when using the API directly.*
+
+## Powerful New Features
+
+Alice has been upgraded with powerful new features to supercharge your development workflow, ensuring that context and priority are never lost between coding sessions.
+
+### Dynamic Project Planning
+
+Tired of project plans becoming stale in static documents? Alice introduces a dynamic, queryable project plan.
+
+-   **Create a Prioritized Backlog:** Use the `update_priority_plan` tool to set the exact order of tasks to be worked on. You can provide a rationale for each task's priority, giving essential context to your future self or other agents.
+-   **Always Know What's Next:** The `get_next_task` tool instantly returns the highest-priority task that isn't yet "Done" or "Canceled". This eliminates ambiguity and ensures focus is always on the most critical work.
+-   **Live Status Updates:** The project plan is always up-to-date. As tasks are completed, the plan automatically reflects their new status, providing a real-time view of progress.
+
+### Architectural Decision Records (ADR)
+
+Capture the "why" behind your project's design with a structured, queryable log of architectural decisions.
+
+-   **Document Key Decisions:** Use the `create_decision` tool to record the context, decision, and consequences of important architectural choices.
+-   **Preserve Context:** New development threads can quickly get up to speed by reviewing past decisions, preventing the re-litigation of settled issues and ensuring consistency over time.
+-   **Link to Tasks:** Associate decisions with the specific tasks that prompted them, creating a clear audit trail of your project's evolution.
+
+These features transform Alice from a simple task tracker into an intelligent partner that actively manages project context and priority, making your development process more efficient, transparent, and powerful.
 
 ## Running Tests
 
