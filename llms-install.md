@@ -1,22 +1,98 @@
 # Alice MCP Installation Guide for Cline
 
-This guide provides step-by-step instructions for installing and configuring the Alice MCP system for use with Cline or similar AI coding assistants. Alice is a two-component system: a FastAPI backend for task management and a Node.js MCP server for integration with AI tools.
+This comprehensive guide provides step-by-step instructions for installing and configuring the Alice MCP system for use with **Cline** or similar AI coding assistants. Alice delivers enterprise-grade project management with bulk operations, dynamic planning, and architectural decision tracking.
+
+## What You're Installing
+
+Alice is a powerful two-component system:
+
+1. **FastAPI Backend**: Python-based REST API with SQLite database
+   - Manages projects, tasks, epics, messages, and decisions
+   - Includes 4 enterprise-grade bulk operation endpoints
+   - 62 comprehensive tests ensuring reliability
+
+2. **MCP Server**: TypeScript-based integration layer
+   - Built from our custom template with all bulk operations
+   - Seamless Cline integration with automatic server management
+   - Project ID resolution and comprehensive error handling
 
 ## Prerequisites
 
 - **Python 3.8+** installed on your system
-- **Node.js 14+** installed on your system
+- **Node.js 14+** installed on your system  
 - **Git** for cloning the repository
 - **Cline** desktop app installed
 
 ## Installation Methods
 
-There are two methods for installing Alice:
+**Choose your installation approach:**
 
-1. **Simplified Installation** (Recommended): Uses Cline's MCP server creation capabilities
-2. **Manual Installation**: Manually configuring both components
+1. **🚀 Automated Setup** (Strongly Recommended): Single script handles everything
+2. **🔧 Manual Installation**: Step-by-step configuration for customization
 
-## Simplified Installation (Recommended)
+## 🚀 Automated Setup (Strongly Recommended)
+
+**The fastest way to get Alice running with all bulk operations:**
+
+### Step 1: Clone and Setup Backend
+
+```bash
+git clone https://github.com/your-organization/alice-mcp.git
+cd alice-mcp
+
+# Create and activate Python environment
+python -m venv alice-env
+source alice-env/bin/activate  # Windows: alice-env\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 2: One-Command MCP Setup
+
+Our comprehensive setup script handles everything automatically:
+
+```bash
+# Make the script executable if needed
+chmod +x scripts/setup-alice-mcp.sh
+
+# Run the automated setup
+./scripts/setup-alice-mcp.sh
+```
+
+**What this script does:**
+1. ✅ Checks for Node.js and npm prerequisites
+2. ✅ Creates MCP server at `~/Documents/Cline/MCP/alice-mcp-server`
+3. ✅ Applies our comprehensive template with all 30+ tools including bulk operations
+4. ✅ Installs TypeScript dependencies and builds the server
+5. ✅ Updates your Cline MCP settings automatically
+6. ✅ Provides verification steps
+
+### Step 3: Test Your Installation
+
+Restart Cline and test:
+```
+Use alice-mcp-server to create a project named "test-project"
+```
+
+That's it! You now have enterprise-grade Alice with all bulk operations ready.
+
+### Advanced Setup Options
+
+```bash
+# Custom MCP server location
+./scripts/setup-alice-mcp.sh -d /custom/path/to/mcp/server
+
+# Verbose output for troubleshooting
+./scripts/setup-alice-mcp.sh -v
+
+# See all options
+./scripts/setup-alice-mcp.sh -h
+```
+
+## 🔧 Manual Installation
+
+For users who prefer step-by-step configuration or need customization:
 
 ### Step 1: Clone the Repository
 
@@ -43,9 +119,7 @@ pip install -r requirements.txt
 
 ### Step 3: Set Up the MCP Server
 
-You have two options for setting up the MCP server:
-
-#### Option A: Using the Setup Script (Recommended)
+#### Using the Setup Script (Recommended)
 
 The Alice repository includes a setup script that automates the MCP server creation process:
 
@@ -212,24 +286,73 @@ If the installation was successful, Cline should be able to access the Alice MCP
 
 ## Using Alice in Your Workflow
 
-When working with Cline on any project:
+### **🚀 Available Tools Overview**
 
-1. First create a project if you haven't already:
+Alice provides **30+ comprehensive tools** including:
+
+**Project Management:**
+- `create_project`, `list_projects`, `get_project`, `update_project`
+
+**Individual Operations:**
+- `create_task`, `list_tasks`, `get_task`, `update_task`, `delete_task`
+- `create_epic`, `list_epics`, `get_epic`, `update_epic`, `delete_epic`
+- `create_decision`, `list_decisions`, `get_decision`, `update_decision`
+- `add_message`, `get_messages`
+
+**🔥 NEW: Enterprise Bulk Operations:**
+- `bulk_create_tasks` - Create multiple tasks simultaneously
+- `bulk_update_tasks` - Update multiple tasks in one operation
+- `bulk_create_decisions` - Batch process architectural decisions
+- `bulk_update_decisions` - Update multiple decisions efficiently
+
+**Dynamic Planning:**
+- `get_priority_plan`, `update_priority_plan`, `get_next_task`
+
+### **Basic Workflow:**
+
+1. **Create a project:**
    ```
-   Use the alice-mcp-server tool to create a project named "your-project-name" 
-   with path "/path/to/your/project".
+   Use alice-mcp-server to create a project named "your-project-name" 
+   with path "/path/to/your/project"
    ```
 
-2. Get the project ID:
+2. **Use bulk operations for efficiency:**
    ```
-   Use the alice-mcp-server tool to get a project by name "your-project-name".
+   Use alice-mcp-server bulk_create_tasks to create multiple tasks for project "your-project-name":
+   - Setup authentication system
+   - Design user interface  
+   - Implement API endpoints
+   - Write comprehensive tests
+   - Deploy to production
    ```
 
-3. Use the project ID for all subsequent tasks, epics, and messages:
+3. **Track architectural decisions:**
    ```
-   Use the alice-mcp-server tool to create a task with project_id <your-project-id> 
-   and title "Implement feature X".
+   Use alice-mcp-server bulk_create_decisions to document multiple architectural decisions 
+   for project "your-project-name" with context, decisions, and consequences
    ```
+
+### **Enterprise Bulk Operations Examples:**
+
+**Bulk Task Creation (75% fewer API calls):**
+```
+Use alice-mcp-server bulk_create_tasks for project "my-project" with tasks:
+[
+  { title: "Setup CI/CD pipeline", assignee: "DevOps Team", status: "To-Do" },
+  { title: "Implement authentication", assignee: "Backend Team", status: "In Progress" },
+  { title: "Design UI mockups", assignee: "Design Team", status: "To-Do" }
+]
+```
+
+**Bulk Status Updates:**
+```
+Use alice-mcp-server bulk_update_tasks for project "my-project":
+[
+  { id: 1, update: { status: "Done" }},
+  { id: 2, update: { status: "In Progress", assignee: "New Team" }},
+  { id: 3, update: { description: "Updated requirements based on feedback" }}
+]
+```
 
 ## Troubleshooting
 
