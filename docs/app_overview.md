@@ -4,7 +4,7 @@
 
 **Purpose:** Alice MCP Server is a lightweight, local server designed to support agile task workflows within AI coding environments. It provides a backend for managing tasks, epics, and messages, with project isolation.
 
-**Project ID:** `alice-mcp` (Used for tracking tasks via the Alice MCP tool)
+**Project ID:** `alice` (Used for tracking tasks via the Alice MCP tool)
 
 **Target Users:** Developers using AI coding assistants (like Claude, ChatGPT, etc.) who need a simple, local system to manage project tasks and context.
 

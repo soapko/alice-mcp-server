@@ -12,7 +12,7 @@ from datetime import datetime
 from starlette.responses import Response
 
 from .database import engine, Base, SessionLocal
-from .routers import tasks, messages, epics, projects, decisions, project_plans
+from .routers import tasks, messages, epics, projects, decisions, project_plans, bulk_tasks, bulk_decisions
 from . import models, schemas
 
 # Configure logging
@@ -47,6 +47,8 @@ def get_db():
 
 # Include routers
 app.include_router(projects.router)  # Add projects router first
+app.include_router(bulk_tasks.router)  # Include bulk routers before regular routers
+app.include_router(bulk_decisions.router)
 app.include_router(tasks.router)
 app.include_router(messages.router)
 app.include_router(epics.router)

@@ -194,6 +194,19 @@ const isValidGetDecisionArgs = (args: any): args is { project_id: string; decisi
 const isValidUpdateDecisionArgs = (args: any): args is { project_id: string; decision_id: number; title?: string; context_md?: string; decision_md?: string; consequences_md?: string; status?: DecisionStatus } =>
   typeof args === 'object' && args !== null && typeof args.project_id === 'string' && typeof args.decision_id === 'number';
 
+// Bulk operations validation functions
+const isValidBulkCreateTasksArgs = (args: any): args is { project_id: string; tasks: any[] } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && Array.isArray(args.tasks);
+
+const isValidBulkUpdateTasksArgs = (args: any): args is { project_id: string; updates: any[] } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && Array.isArray(args.updates);
+
+const isValidBulkCreateDecisionsArgs = (args: any): args is { project_id: string; decisions: any[] } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && Array.isArray(args.decisions);
+
+const isValidBulkUpdateDecisionsArgs = (args: any): args is { project_id: string; updates: any[] } =>
+  typeof args === 'object' && args !== null && typeof args.project_id === 'string' && Array.isArray(args.updates);
+
 /**
  * Main AliceMcpServer class
  */
@@ -581,6 +594,124 @@ class AliceMcpServer {
             required: ['project_id', 'decision_id'],
           },
         },
+
+        // Bulk operation tools
+        {
+          name: 'bulk_create_tasks',
+          description: 'Create multiple tasks in a single request',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              tasks: {
+                type: 'array',
+                description: 'Array of task objects to create',
+                items: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string', description: 'Title of the task' },
+                    description: { type: 'string', description: 'Optional description of the task' },
+                    assignee: { type: 'string', description: 'Optional assignee for the task' },
+                    status: { type: 'string', enum: Object.values(TaskStatus), description: 'Optional initial status (default: To-Do)' },
+                    epic_id: { type: 'number', description: 'Optional ID of the epic to associate this task with' },
+                  },
+                  required: ['title'],
+                },
+              },
+            },
+            required: ['project_id', 'tasks'],
+          },
+        },
+        {
+          name: 'bulk_update_tasks',
+          description: 'Update multiple tasks in a single request',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              updates: {
+                type: 'array',
+                description: 'Array of task update objects',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'number', description: 'ID of the task to update' },
+                    update: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string', description: 'New title for the task' },
+                        description: { type: 'string', description: 'New description for the task' },
+                        status: { type: 'string', enum: Object.values(TaskStatus), description: 'New status for the task' },
+                        assignee: { type: 'string', description: 'New assignee for the task' },
+                        epic_id: { type: 'number', description: 'New epic ID for the task' },
+                      },
+                    },
+                  },
+                  required: ['id', 'update'],
+                },
+              },
+            },
+            required: ['project_id', 'updates'],
+          },
+        },
+        {
+          name: 'bulk_create_decisions',
+          description: 'Create multiple decisions in a single request',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              decisions: {
+                type: 'array',
+                description: 'Array of decision objects to create',
+                items: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string', description: 'Title of the decision' },
+                    context_md: { type: 'string', description: 'Context of the decision in markdown' },
+                    decision_md: { type: 'string', description: 'The decision in markdown' },
+                    consequences_md: { type: 'string', description: 'Consequences of the decision in markdown' },
+                    task_id: { type: 'number', description: 'Optional ID of the task this decision relates to' },
+                  },
+                  required: ['title'],
+                },
+              },
+            },
+            required: ['project_id', 'decisions'],
+          },
+        },
+        {
+          name: 'bulk_update_decisions',
+          description: 'Update multiple decisions in a single request',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: { type: 'string', description: "The project's name or slug" },
+              updates: {
+                type: 'array',
+                description: 'Array of decision update objects',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'number', description: 'ID of the decision to update' },
+                    update: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string', description: 'New title for the decision' },
+                        context_md: { type: 'string', description: 'New context in markdown' },
+                        decision_md: { type: 'string', description: 'New decision in markdown' },
+                        consequences_md: { type: 'string', description: 'New consequences in markdown' },
+                        status: { type: 'string', enum: Object.values(DecisionStatus), description: 'New status for the decision' },
+                      },
+                    },
+                  },
+                  required: ['id', 'update'],
+                },
+              },
+            },
+            required: ['project_id', 'updates'],
+          },
+        },
       ],
     }));
 
@@ -778,6 +909,32 @@ class AliceMcpServer {
             numericProjectId = await resolveProjectId(args.project_id);
             const { project_id: updateDecisionProjectStringId, decision_id: updateDecisionId, ...updateDecisionData } = args;
             response = await this.axiosInstance.put(`/${numericProjectId}/decisions/${updateDecisionId}`, updateDecisionData);
+            break;
+
+          // Bulk operation cases
+          case 'bulk_create_tasks':
+            if (!isValidBulkCreateTasksArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for bulk_create_tasks');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: bulkCreateTasksProjectStringId, ...bulkCreateTasksData } = args;
+            response = await this.axiosInstance.post(`/${numericProjectId}/tasks/bulk`, bulkCreateTasksData);
+            break;
+          case 'bulk_update_tasks':
+            if (!isValidBulkUpdateTasksArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for bulk_update_tasks');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: bulkUpdateTasksProjectStringId, ...bulkUpdateTasksData } = args;
+            response = await this.axiosInstance.put(`/${numericProjectId}/tasks/bulk`, bulkUpdateTasksData);
+            break;
+          case 'bulk_create_decisions':
+            if (!isValidBulkCreateDecisionsArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for bulk_create_decisions');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: bulkCreateDecisionsProjectStringId, ...bulkCreateDecisionsData } = args;
+            response = await this.axiosInstance.post(`/${numericProjectId}/decisions/bulk`, bulkCreateDecisionsData);
+            break;
+          case 'bulk_update_decisions':
+            if (!isValidBulkUpdateDecisionsArgs(args)) throw new McpError(ErrorCode.InvalidParams, 'Invalid arguments for bulk_update_decisions');
+            numericProjectId = await resolveProjectId(args.project_id);
+            const { project_id: bulkUpdateDecisionsProjectStringId, ...bulkUpdateDecisionsData } = args;
+            response = await this.axiosInstance.put(`/${numericProjectId}/decisions/bulk`, bulkUpdateDecisionsData);
             break;
 
           default:
