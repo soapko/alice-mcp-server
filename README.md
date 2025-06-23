@@ -9,10 +9,9 @@ See the [Documentation](#documentation) section for detailed guides and the [Qui
 ## Key Features
 
 ### **🚀 Efficient Bulk Operations**
-- **Bulk Task Management:** Create and update multiple tasks simultaneously (75% reduction in API calls)
+- **Bulk Task Management:** Create and update multiple tasks simultaneously
 - **Bulk Decision Records:** Batch process architectural decisions with rich markdown support
 - **Atomic Operations:** All-or-nothing processing with comprehensive error reporting
-- **Performance Optimized:** SQLAlchemy batch loading for maximum efficiency
 
 ### **📊 Intelligent Project Management**
 - **Project Isolation:** All data scoped to specific projects with secure separation
@@ -53,7 +52,7 @@ See the [Documentation](#documentation) section for detailed guides and the [Qui
 
 3. **Restart Cline** and test with:
    ```
-   Use alice-mcp-server to create a project named "test-project"
+   Use alice to create a project named "test-project"
    ```
 
 That's it! Alice is now integrated with Cline and ready for efficient project management.
@@ -91,7 +90,7 @@ For detailed manual setup instructions, see [LLM Installation Guide](llms-instal
 
 ### Automatic Startup (MCP Integration)
 
-When used with an MCP-compatible environment, Alice now starts automatically - both the FastAPI backend and the MCP server components launch together. This is handled by the `scripts/start-alice-servers.sh` wrapper script, which:
+When used with an MCP-compatible environment, Alice starts automatically - both the FastAPI backend and the MCP server components launch together. This is handled by the `scripts/start-alice-servers.sh` wrapper script, which:
 
 - Activates the Python environment
 - Installs dependencies
@@ -138,7 +137,7 @@ Direct API examples:
 
 ## Powerful New Features
 
-Alice has been upgraded with powerful new features to supercharge your development workflow, ensuring that context and priority are never lost between coding sessions.
+Alice has been upgraded with powerful new features to enhance your development workflow, ensuring that context and priority are never lost between coding sessions.
 
 ### Dynamic Project Planning
 
@@ -171,10 +170,9 @@ Alice's bulk operations deliver improved efficiency for development project mana
 -   **`bulk_update_decisions`:** Update decision statuses and content across multiple records
 
 **Performance Benefits:**
--   **75% reduction** in API calls compared to individual operations
+-   **Huge reduction** in API calls compared to individual operations
 -   **Atomic transactions** with rollback protection ensure data consistency
 -   **Detailed reporting** shows success/failure status for each item
--   **SQLAlchemy optimization** with batch loading for maximum database efficiency
 
 **Example Usage:**
 ```javascript
