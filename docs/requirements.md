@@ -81,7 +81,7 @@ CREATE TABLE messages (
 ```
 
 ### 2.5 `status_history` Table
-Logs changes in task status. *(Note: API endpoints for this are not currently implemented)*
+Logs changes in task status automatically.
 ```sql
 CREATE TABLE status_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +90,42 @@ CREATE TABLE status_history (
     new_status TEXT NOT NULL CHECK (new_status IN ('To-Do', 'In Progress', 'Done', 'Canceled')),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+```
+
+### 2.6 `decisions` Table
+Stores architectural decision records with rich markdown content.
+```sql
+CREATE TABLE decisions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    context_md TEXT,
+    decision_md TEXT,
+    consequences_md TEXT,
+    status TEXT NOT NULL CHECK (status IN ('Proposed', 'Accepted', 'Rejected', 'Superseded')) DEFAULT 'Proposed',
+    task_id INTEGER,
+    project_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+```
+
+### 2.7 `project_plans` Table
+Manages prioritized task ordering for dynamic project planning.
+```sql
+CREATE TABLE project_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    priority_order INTEGER NOT NULL,
+    rationale TEXT,
+    project_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    UNIQUE(task_id, project_id)
 );
 ```
 
@@ -149,6 +185,45 @@ The API follows REST principles and utilizes project IDs in the path for resourc
   - Response: `schemas.Message`
 - `GET /`: Get all messages for the specified task.
   - Response: `List[schemas.Message]`
+
+### 3.5 Decisions (`/{project_id}/decisions`)
+- `POST /`: Create an architectural decision record within the specified project.
+  - Request Body: `schemas.DecisionCreate`
+  - Response: `schemas.Decision`
+- `GET /`: List decisions within the project.
+  - Query Params: `skip`, `limit`
+  - Response: `List[schemas.Decision]`
+- `GET /{decision_id}`: Get a specific decision.
+  - Response: `schemas.Decision`
+- `PUT /{decision_id}`: Update a decision.
+  - Request Body: `schemas.DecisionUpdate`
+  - Response: `schemas.Decision`
+
+### 3.6 Project Planning (`/{project_id}/priority-plan`)
+- `GET /`: Get the prioritized project plan.
+  - Response: `List[schemas.TaskWithPriority]`
+- `PUT /`: Update the prioritized project plan.
+  - Request Body: `List[schemas.PriorityPlanUpdate]`
+  - Response: `List[schemas.TaskWithPriority]`
+- `GET /next-task`: Get the next actionable task from the plan.
+  - Response: `schemas.Task`
+
+### 3.7 Bulk Operations
+#### Tasks (`/{project_id}/tasks/bulk`)
+- `POST /`: Create multiple tasks in a single request.
+  - Request Body: `schemas.BulkTaskCreate`
+  - Response: `schemas.BulkTaskResponse`
+- `PUT /`: Update multiple tasks in a single request.
+  - Request Body: `schemas.BulkTaskUpdate`
+  - Response: `schemas.BulkTaskResponse`
+
+#### Decisions (`/{project_id}/decisions/bulk`)
+- `POST /`: Create multiple decisions in a single request.
+  - Request Body: `schemas.BulkDecisionCreate`
+  - Response: `schemas.BulkDecisionResponse`
+- `PUT /`: Update multiple decisions in a single request.
+  - Request Body: `schemas.BulkDecisionUpdate`
+  - Response: `schemas.BulkDecisionResponse`
 
 ## 4. Performance Requirements
 

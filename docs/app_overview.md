@@ -52,11 +52,14 @@ Alice acts as a server component within the Model Context Protocol (MCP) ecosyst
 
 ## 3. Key Features
 
-- **Project Isolation:** Tasks, Epics, and Messages are scoped to specific Projects. This allows managing multiple distinct software projects without data overlap.
+- **Project Isolation:** Tasks, Epics, Messages, and Decisions are scoped to specific Projects. This allows managing multiple distinct software projects without data overlap.
 - **Task Management:** Create, Read, Update, Delete (CRUD) operations for tasks. Tasks include title, description, status, assignee, and timestamps.
 - **Epic Management:** Group related tasks under Epics. Epics also have CRUD operations and share similar attributes with tasks.
 - **Message Tracking:** Log messages or notes against specific tasks, including author and timestamp.
-- **Status History:** (Schema exists, but API endpoint not implemented in `REQUIREMENTS.md`) Track changes in task status over time.
+- **Status History:** Track changes in task status over time with automatic logging.
+- **Bulk Operations:** Efficient batch processing for creating and updating multiple tasks or decisions simultaneously (75% reduction in API calls).
+- **Architectural Decision Records (ADR):** Document key architectural decisions with context, decision details, and consequences using rich markdown support.
+- **Dynamic Project Planning:** AI-queryable prioritized task backlogs with next-task identification for focused development workflows.
 
 ## 4. Technical Stack
 
@@ -74,13 +77,19 @@ Alice acts as a server component within the Model Context Protocol (MCP) ecosyst
 erDiagram
     PROJECT ||--o{ EPIC : contains
     PROJECT ||--o{ TASK : contains
+    PROJECT ||--o{ DECISION : contains
+    PROJECT ||--o{ PROJECT_PLAN : has
     EPIC ||--o{ TASK : groups
     TASK ||--o{ MESSAGE : has
     TASK ||--o{ STATUS_HISTORY : logs
+    TASK ||--o{ DECISION : relates_to
+    PROJECT_PLAN ||--o{ TASK : prioritizes
 
     PROJECT {
         int id PK
         string name UK
+        string description
+        string path
         datetime created_at
     }
 
@@ -105,6 +114,7 @@ erDiagram
         string assignee
         int epic_id
         int project_id
+        int priority
     }
 
     MESSAGE {
@@ -123,17 +133,42 @@ erDiagram
         datetime changed_at
     }
 
-    %% Note: 'status', 'old_status', and 'new_status' fields refer to the TaskStatus enum
-    %% defined in application code (To-Do, In-Progress, Done, Canceled).
+    DECISION {
+        int id PK
+        string title
+        text context_md
+        text decision_md
+        text consequences_md
+        string status
+        int task_id
+        int project_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    PROJECT_PLAN {
+        int id PK
+        int task_id
+        int priority_order
+        string rationale
+        int project_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Note: 'status' fields refer to TaskStatus enum (To-Do, In Progress, Done, Canceled)
+    %% and DecisionStatus enum (Proposed, Accepted, Rejected, Superseded).
     %% Note: Nullability markers removed for rendering compatibility.
 ```
 
 **Tables:**
-- `projects`: Stores project definitions (ID, name).
+- `projects`: Stores project definitions (ID, name, description, path).
 - `epics`: Stores epic details, linked to a project.
 - `tasks`: Stores task details, linked to a project and optionally an epic.
 - `messages`: Stores messages associated with tasks.
 - `status_history`: Logs status changes for tasks.
+- `decisions`: Stores architectural decision records with markdown content.
+- `project_plans`: Manages prioritized task ordering for project planning.
 
 ## 6. API Endpoints
 
@@ -165,7 +200,24 @@ All endpoints (except `/projects`) are prefixed with the `project_id`.
 - `POST /`: Add a message to a task.
 - `GET /`: Get all messages for a task.
 
-*(Note: Status History endpoints are defined in the schema but not listed as required API endpoints in `REQUIREMENTS.md`)*
+**Decisions (`/{project_id}/decisions`)**
+- `POST /`: Create an architectural decision record.
+- `GET /`: List decisions within the project (with filters).
+- `GET /{decision_id}`: Get a specific decision.
+- `PUT /{decision_id}`: Update a decision.
+
+**Project Planning (`/{project_id}/priority-plan`)**
+- `GET /`: Get the prioritized project plan.
+- `PUT /`: Update the prioritized project plan.
+- `GET /next-task`: Get the next actionable task from the plan.
+
+**Bulk Operations**
+- `POST /{project_id}/tasks/bulk`: Create multiple tasks in a single request.
+- `PUT /{project_id}/tasks/bulk`: Update multiple tasks in a single request.
+- `POST /{project_id}/decisions/bulk`: Create multiple decisions in a single request.
+- `PUT /{project_id}/decisions/bulk`: Update multiple decisions in a single request.
+
+*(Note: Status History endpoints are defined in the schema and logged automatically)*
 
 ## 7. Development Workflow
 

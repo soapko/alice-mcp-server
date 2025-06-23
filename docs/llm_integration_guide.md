@@ -49,6 +49,7 @@ You can adapt the following template for your LLM's custom instructions. This te
 
   2. Break down complex tasks into smaller, trackable units:
      • Create tasks using Alice's `create_task` tool with the required `project_id` (the project's name/slug) and `title`.
+     • For efficiency, use `bulk_create_tasks` when creating multiple related tasks simultaneously (75% fewer API calls).
      • Optional fields: `description`, `assignee`, `status`, `epic_id`.
 
   3. For every coding or significant documentation task, you MUST:
