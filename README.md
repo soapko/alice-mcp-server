@@ -1,6 +1,6 @@
-# Alice MCP - Enterprise-Grade Agile Task Management
+# Alice MCP - Lightweight Agile Task Management
 
-**Alice** is a powerful, local task management system designed for AI coding environments using the Model Context Protocol (MCP). It provides enterprise-grade project management capabilities with bulk operations, dynamic planning, and architectural decision tracking - all running locally on your machine with complete project isolation.
+**Alice** is a lightweight, local task management system designed for AI coding environments using the Model Context Protocol (MCP). It provides comprehensive project management capabilities with bulk operations, dynamic planning, and architectural decision tracking - all running locally on your machine with complete project isolation.
 
 Optimized for **Cline** and other AI coding assistants, Alice transforms how you manage development workflows with intelligent automation and comprehensive tracking.
 
@@ -8,7 +8,7 @@ See the [Documentation](#documentation) section for detailed guides and the [Qui
 
 ## Key Features
 
-### **🚀 Enterprise-Grade Bulk Operations**
+### **🚀 Efficient Bulk Operations**
 - **Bulk Task Management:** Create and update multiple tasks simultaneously (75% reduction in API calls)
 - **Bulk Decision Records:** Batch process architectural decisions with rich markdown support
 - **Atomic Operations:** All-or-nothing processing with comprehensive error reporting
@@ -56,7 +56,7 @@ See the [Documentation](#documentation) section for detailed guides and the [Qui
    Use alice-mcp-server to create a project named "test-project"
    ```
 
-That's it! Alice is now integrated with Cline and ready for enterprise-grade project management.
+That's it! Alice is now integrated with Cline and ready for efficient project management.
 
 ## Advanced Setup
 
@@ -158,9 +158,9 @@ Capture the "why" behind your project's design with a structured, queryable log 
 
 These features transform Alice from a simple task tracker into an intelligent partner that actively manages project context and priority, making your development process more efficient, transparent, and powerful.
 
-### Bulk Operations - Enterprise Efficiency
+### Bulk Operations - Improved Efficiency
 
-Alice's bulk operations deliver enterprise-grade efficiency for large-scale project management:
+Alice's bulk operations deliver improved efficiency for development project management:
 
 **Bulk Task Operations:**
 -   **`bulk_create_tasks`:** Create multiple tasks in a single operation with comprehensive validation

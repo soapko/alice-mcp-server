@@ -1,14 +1,14 @@
 # Alice MCP Installation Guide for Cline
 
-This comprehensive guide provides step-by-step instructions for installing and configuring the Alice MCP system for use with **Cline** or similar AI coding assistants. Alice delivers enterprise-grade project management with bulk operations, dynamic planning, and architectural decision tracking.
+This comprehensive guide provides step-by-step instructions for installing and configuring the Alice MCP system for use with **Cline** or similar AI coding assistants. Alice delivers lightweight project management with bulk operations, dynamic planning, and architectural decision tracking.
 
 ## What You're Installing
 
-Alice is a powerful two-component system:
+Alice is a lightweight two-component system:
 
 1. **FastAPI Backend**: Python-based REST API with SQLite database
    - Manages projects, tasks, epics, messages, and decisions
-   - Includes 4 enterprise-grade bulk operation endpoints
+   - Includes 4 efficient bulk operation endpoints
    - 62 comprehensive tests ensuring reliability
 
 2. **MCP Server**: TypeScript-based integration layer
@@ -75,7 +75,7 @@ Restart Cline and test:
 Use alice-mcp-server to create a project named "test-project"
 ```
 
-That's it! You now have enterprise-grade Alice with all bulk operations ready.
+That's it! You now have lightweight Alice with all bulk operations ready.
 
 ### Advanced Setup Options
 
@@ -299,7 +299,7 @@ Alice provides **30+ comprehensive tools** including:
 - `create_decision`, `list_decisions`, `get_decision`, `update_decision`
 - `add_message`, `get_messages`
 
-**🔥 NEW: Enterprise Bulk Operations:**
+**🔥 NEW: Efficient Bulk Operations:**
 - `bulk_create_tasks` - Create multiple tasks simultaneously
 - `bulk_update_tasks` - Update multiple tasks in one operation
 - `bulk_create_decisions` - Batch process architectural decisions
